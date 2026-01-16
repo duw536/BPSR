@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>체크리스트</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+        * { box-sizing: border-box; }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background-color: #1a1a1a; /* 배경색: 짙은 검정 */
+            color: #e0e0e0; /* 기본 글자색: 밝은 회색 */
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #fff;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px rgba(255,255,255,0.3);
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            /* 화면이 1000px 이상일 때만 최대폭 제한, 그 외엔 꽉 차게 */
+            max-width: 1200px; 
+            margin: 0 auto;
+            align-items: flex-start; /* 내용 길이가 달라도 상단 정렬 */
+        }
+
+        .left-column, .right-column {
+            flex: 1 1 0;      /* 정확히 1:1 비율로 공간 분배 */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 320px;
+        }
+
+        /* 모바일 등 화면이 좁을 때 줄바꿈 처리 */
+        @media (max-width: 768px) {
+            .container {
+                flex-wrap: wrap;
+            }
+            .left-column, .weeklyList {
+                flex: 1 1 100%; /* 한 줄에 하나씩 꽉 차게 */
+                min-width: 100%;
+            }
+        }
+
+        /* 카드 박스 디자인 */
+        .dailyList, .everyOtherWeekList, .weeklyList {
+            background: #2d2d2d;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #444;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            /* width: 100%; (필요하다면 추가, 보통은 div라 자동 적용됨) */
+        }
+
+        /* 테이블 고정 레이아웃 설정 */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            table-layout: fixed; /* 테이블 셀 너비를 고정 */
+        }
+
+        th {
+            text-align: center;
+            font-size: 1.1rem;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #555;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* 네온 컬러 포인트 */
+        #dailyListTable th { color: #00ff88; border-color: #00ff88; text-shadow: 0 0 5px rgba(0,255,136,0.3); }
+        #weeklyListTable th { color: #00d2ff; border-color: #00d2ff; text-shadow: 0 0 5px rgba(0,210,255,0.3); }
+        #everyOtherWeekTable th { color: #ff00ff; border-color: #ff00ff; text-shadow: 0 0 5px rgba(255,0,255,0.3); }
+
+        tr { border-bottom: 1px solid #3d3d3d; }
+        tr:hover { background-color: #383838; }
+
+        td { 
+            padding: 12px 8px; 
+            white-space: nowrap; /* 글자가 길어도 줄바꿈 안 함 (취향 따라 삭제 가능) */
+            overflow: hidden;
+            text-overflow: ellipsis; /* 너무 길면 ... 표시 */
+        }
+
+        /* 체크박스 칸 너비 고정 */
+        .td-checkbox { 
+            width: 40px;      /* 너비 지정 */
+            min-width: 40px;  /* 최소 너비 고정 */
+            max-width: 40px;  /* 최대 너비 고정 */
+            text-align: center;
+            /* 불필요한 여백 제거로 깔끔하게 */
+            padding: 12px 0;  
+        }
+
+        tr td:not(.td-checkbox) {
+            width: auto;      /* 나머지 공간 자동 채움 */
+        }
+
+        input[type="checkbox"] {
+            cursor: pointer;
+            width: 18px;
+            height: 18px;
+            accent-color: #00d2ff;
+        }
+
+        /* 체크 완료 시 스타일 (최신 브라우저용) */
+        tr:has(input:checked) td {
+            text-decoration: line-through;
+            color: #666;
+            transition: color 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <h2>체크리스트</h2>
+    <div class="container">
+        <div class="left-column">
+            <div class="dailyList">
+                <table id="dailyListTable">
+                    <colgroup>
+                        <col style="width: 50px;"> <col style="width: auto;"> 
+                    </colgroup>
+                    <tr><th colspan="2">일일</th></tr>
+                </table>
+            </div>
+            <div class="everyOtherWeekList">
+                <table id="everyOtherWeekTable">
+                    <colgroup>
+                        <col style="width: 50px;"> <col style="width: auto;"> 
+                    </colgroup>
+                    <tr><th colspan="2">격주</th></tr>
+                </table>
+            </div>
+        </div>
+        <div class="right-column">
+            <div class="weeklyList">
+                <table id="weeklyListTable">
+                    <colgroup>
+                            <col style="width: 50px;"> <col style="width: auto;"> 
+                        </colgroup>
+                    <tr><th colspan="2">주간</th></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // 도우미 함수
+        function gid(id) {
+            return document.getElementById(id);
+        }
+
+        // 항목 추가 함수
+        function addItem(tableId, text) {
+            let targetTable = gid(tableId);     
+            let tr = document.createElement("tr");
+
+            // 저장소 키 생성
+            let storageKey = tableId + "_" + text;
+            
+            let tdCheck = document.createElement("td");
+            tdCheck.className = "td-checkbox";
+            
+            let checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            // 나중에 찾기 쉽게 데이터 속성 심기
+            checkbox.dataset.key = storageKey;
+
+            // 1. 브라우저 저장값 불러오기
+            if(localStorage.getItem(storageKey) === "true") {
+                checkbox.checked = true;
+            }
+
+            // 2. 체크할 때마다 저장
+            checkbox.addEventListener("change", function() {
+                localStorage.setItem(storageKey, checkbox.checked);
+            });
+
+            tdCheck.appendChild(checkbox);
+
+            let tdText = document.createElement("td");
+            tdText.innerHTML = text;
+
+            tr.appendChild(tdCheck);
+            tr.appendChild(tdText);
+            targetTable.appendChild(tr);
+        }
+
+        // 새벽 5시 초기화
+        function checkDailyReset() {
+            const now = new Date();
+
+            // 새벽 5시 이전이면 어제로 취급
+            if(now.getHours() < 5) {
+                now.setDate(now.getDate() - 1);
+            }
+
+            // 오늘을 정의하는 날짜 키
+            const todayKey = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+            const lastResetDate = localStorage.getItem("lastResetDate");
+
+            // 저장된 날짜가 오늘과 다르면
+            if (lastResetDate !== todayKey) {
+                
+                // 1. 일일 테이블의 체크박스만 싹 긁어모음
+                const dailyTable = gid("dailyListTable");
+                const checkboxes = dailyTable.querySelectorAll("input[type='checkbox']");
+
+                // 2. 하나씩 끄기
+                checkboxes.forEach(function(box) {
+                    // 체크박스 해제
+                    box.checked = false;
+                    
+                    // 저장소 데이터 삭제
+                    if(box.dataset.key) {
+                        localStorage.removeItem(box.dataset.key);
+                    }
+                });
+
+                // 3. 오늘 날짜로 갱신
+                localStorage.setItem("lastResetDate", todayKey);
+                console.log("일일 퀘스트가 초기화되었습니다.");
+            }
+        }
+
+        // 주간 초기화
+        function checkWeeklyReset() {
+            const now = new Date();
+
+            // 1. 새벽 5시 이전이면 어제로 취급
+            if (now.getHours() < 5) {
+                now.setDate(now.getDate() - 1);
+            }
+
+            // 2. 요일 계산
+            const day = now.getDay();
+            
+            // 3. 이번 주 월요일 날짜 계산하기
+            const distanceToMonday = (day + 6) % 7; 
+            const lastMonday = new Date(now);
+            lastMonday.setDate(now.getDate() - distanceToMonday);
+
+            // 4. 이번 주 월요일을 식별 키로 생성
+            const thisWeekKey = lastMonday.getFullYear() + "-" + (lastMonday.getMonth() + 1) + "-" + lastMonday.getDate();
+            const lastWeeklyResetDate = localStorage.getItem("lastWeeklyResetDate");
+
+            // 5. 저장된 주간 키와 다르면 초기화
+            if (lastWeeklyResetDate !== thisWeekKey) {
+                
+                // 주간 테이블(weeklyListTable)만 선택
+                const weeklyTable = gid("weeklyListTable");
+                const checkboxes = weeklyTable.querySelectorAll("input[type='checkbox']");
+
+                checkboxes.forEach(function(box) {
+                    box.checked = false;
+                    if(box.dataset.key) {
+                        localStorage.removeItem(box.dataset.key);
+                    }
+                });
+
+                // 초기화 완료 후 현재 주간 키 저장
+                localStorage.setItem("lastWeeklyResetDate", thisWeekKey);
+                console.log("주간 퀘스트가 초기화되었습니다 (월요일 기준).");
+            }
+        }
+
+        // 격주 초기화
+        function checkBiWeeklyReset() {
+            const now = new Date();
+
+            // 1. 새벽 5시 이전 룰 적용
+            if (now.getHours() < 5) {
+                now.setDate(now.getDate() - 1);
+            }
+
+            // 2. 이번 주 월요일 구하기
+            const day = now.getDay();
+            const distanceToMonday = (day + 6) % 7;
+            const thisMonday = new Date(now);
+            thisMonday.setDate(now.getDate() - distanceToMonday);
+            
+            // 시간을 0시 0분으로 맞춰서 오차 제거
+            thisMonday.setHours(0, 0, 0, 0);
+
+            // 3. 기준일 설정 이 날짜를 기준으로 2주 간격을 셉니다.
+            const anchorDate = new Date("2025-12-22T00:00:00");
+
+            // 4. 기준일로부터 몇 주가 지났는지 계산
+            const msPerWeek = 1000 * 60 * 60 * 24 * 7; // 1주일을 밀리초로 변환
+            const diffMs = thisMonday - anchorDate;
+            const weeksPassed = Math.floor(diffMs / msPerWeek);
+
+            // 5. 현재 주차가 짝수인지 홀수인지 판단하여 '격주 시작일' 확정
+            if (weeksPassed % 2 !== 0) {
+                thisMonday.setDate(thisMonday.getDate() - 7);
+            }
+
+            // 6. 식별 키 생성
+            const biWeeklyKey = thisMonday.getFullYear() + "-" + (thisMonday.getMonth() + 1) + "-" + thisMonday.getDate();
+            const lastBiWeeklyReset = localStorage.getItem("lastBiWeeklyResetDate");
+
+            // 7. 리셋 실행
+            if (lastBiWeeklyReset !== biWeeklyKey) {
+                
+                const biWeeklyTable = gid("everyOtherWeekTable");
+                const checkboxes = biWeeklyTable.querySelectorAll("input[type='checkbox']");
+
+                checkboxes.forEach(function(box) {
+                    box.checked = false;
+                    if(box.dataset.key) {
+                        localStorage.removeItem(box.dataset.key);
+                    }
+                });
+
+                localStorage.setItem("lastBiWeeklyResetDate", biWeeklyKey);
+                console.log("격주 퀘스트가 초기화되었습니다.");
+            }
+        }
+
+        // 일일
+        addItem("dailyListTable", "길드 출석");
+        addItem("dailyListTable", "길드 납품");
+        addItem("dailyListTable", "길드 사냥(금~일)");
+        addItem("dailyListTable", "불안정던전 2회");
+        addItem("dailyListTable", "시즌패스포인트 500");
+        addItem("dailyListTable", "미스터리 상점");
+        addItem("dailyListTable", "필드보스 키");
+        addItem("dailyListTable", "엘리트 키");
+        addItem("dailyListTable", "월드 보스");
+        addItem("dailyListTable", "개척국 게시판 의뢰");
+        addItem("dailyListTable", "가든 일일 퀘스트");
+        addItem("dailyListTable", "집중력 소모");
+
+        // 주간
+        addItem("weeklyListTable", "길드 무도회(금)");
+        addItem("weeklyListTable", "길드 활동 보상");
+        addItem("weeklyListTable", "개척자 포상");
+        addItem("weeklyListTable", "주간 생활퀘스트");
+        addItem("weeklyListTable", "길드 상점");
+        addItem("weeklyListTable", "시즌패스 상점");
+        addItem("weeklyListTable", "장미석 상점");
+        addItem("weeklyListTable", "우정포인트 상점");
+        addItem("weeklyListTable", "명예코인 상점");
+        addItem("weeklyListTable", "명성 상점");
+        addItem("weeklyListTable", "방어구 교환");
+        addItem("weeklyListTable", "우정포인트 2000");
+        addItem("weeklyListTable", "월드보스 주간포인트");
+        addItem("weeklyListTable", "재련석 뺑이");
+        addItem("weeklyListTable", "얼음용");
+        addItem("weeklyListTable", "암흑용");
+        addItem("weeklyListTable", "빛룡");
+
+        // 격주
+        addItem("everyOtherWeekTable", "시디문");
+
+        // 2. 초기화 감시 시작 (1초마다 확인)
+        function checkAllResets() {
+            checkDailyReset();   // 일일 체크
+            checkWeeklyReset();  // 주간 체크 
+            checkBiWeeklyReset(); // 격주 체크
+        }
+
+        checkAllResets();
+        setInterval(checkDailyReset, 1000);
+
+    </script>
+</body>
+</html>
