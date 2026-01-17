@@ -365,7 +365,7 @@
         // 격주
         addItem("everyOtherWeekTable", "시디문");
 
-        // 2. 초기화 감시 시작 (1초마다 확인)
+        // 2. 초기화 감시 시작
         function checkAllResets() {
             checkDailyReset();   // 일일 체크
             checkWeeklyReset();  // 주간 체크 
@@ -373,8 +373,10 @@
         }
 
         checkAllResets();
-        setInterval(checkDailyReset, 1000);
+        
+        setInterval(checkAllResets, 60000);
 
     </script>
 </body>
+
 </html>
