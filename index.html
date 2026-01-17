@@ -162,18 +162,22 @@
             return document.getElementById(id);
         }
 
+        function tag(tagName) {
+            return document.createElement(tagName);
+        }
+
         // 항목 추가 함수
         function addItem(tableId, text) {
             let targetTable = gid(tableId);     
-            let tr = document.createElement("tr");
+            let tr = tag("tr");
 
             // 저장소 키 생성
             let storageKey = tableId + "_" + text;
             
-            let tdCheck = document.createElement("td");
+            let tdCheck = tag("td");
             tdCheck.className = "td-checkbox";
             
-            let checkbox = document.createElement("input");
+            let checkbox = tag("input");
             checkbox.type = "checkbox";
             // 나중에 찾기 쉽게 데이터 속성 심기
             checkbox.dataset.key = storageKey;
@@ -190,7 +194,7 @@
 
             tdCheck.appendChild(checkbox);
 
-            let tdText = document.createElement("td");
+            let tdText = tag("td");
             tdText.innerHTML = text;
 
             tr.appendChild(tdCheck);
@@ -329,6 +333,14 @@
             }
         }
 
+        // 브라우저 탭을 다시 열거나 활성화했을 때 즉시 검사
+        document.addEventListener("visibilitychange", function() {
+            if (!document.hidden) {
+                checkAllResets();
+                console.log("탭 활성화됨: 즉시 업데이트");
+            }
+        });
+
         // 일일
         addItem("dailyListTable", "길드 출석");
         addItem("dailyListTable", "길드 납품");
@@ -373,10 +385,9 @@
         }
 
         checkAllResets();
-        
+
         setInterval(checkAllResets, 60000);
 
     </script>
 </body>
-
 </html>
